@@ -6,7 +6,7 @@
 
 	<groupId>com.alibaba</groupId>
 	<artifactId>druid-parent</artifactId>
-	<version>1.2.14-SNAPSHOT</version>
+	<version>1.2.15-SNAPSHOT</version>
 	<name>${project.artifactId}</name>
 	<description>A JDBC datasource implementation.</description>
 	<packaging>pom</packaging>
@@ -22,8 +22,8 @@
 		</license>
 	</licenses>
 	<scm>
-		<url>https://github.com/alibaba/fastjson2</url>
-		<connection>scm:git:https://git@github.com/alibaba/fastjson2.git</connection>
+		<url>https://github.com/alibaba/druid</url>
+		<connection>scm:git:https://git@github.com/alibaba/druid.git</connection>
 	</scm>
 
 	<properties>

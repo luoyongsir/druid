@@ -529,7 +529,13 @@ public class SQLParserUtils {
         {
             Lexer lexer = createLexer(sql, dbType);
             lexer.nextToken();
-            if (lexer.identifierEquals("pai") || lexer.identifierEquals("jar")) {
+
+            boolean script = false;
+            if (dbType == DbType.odps && lexer.token == Token.VARIANT) {
+                script = true;
+            }
+
+            if (script || lexer.identifierEquals("pai") || lexer.identifierEquals("jar")) {
                 return Collections.singletonList(sql);
             }
         }
@@ -574,6 +580,16 @@ public class SQLParserUtils {
                 lexer.nextToken();
 
                 if (lexer.token == Token.FUNCTION || lexer.identifierEquals("FUNCTION")) {
+                    lexer.nextToken();
+                    lexer.nextToken();
+                    if (lexer.token == Token.AS) {
+                        lexer.nextToken();
+                        if (lexer.token == Token.LITERAL_CHARS) {
+                            lexer.nextToken();
+                            token = lexer.token;
+                            continue;
+                        }
+                    }
                     lexer.startPos = sql.length();
                     break;
                 }
@@ -584,8 +600,15 @@ public class SQLParserUtils {
                 lexer.nextTokenForSet();
                 token = lexer.token;
                 continue;
-            } else if (lexer.identifierEquals("pai") || lexer.identifierEquals("jar")) {
+            } else if (dbType == DbType.odps && (lexer.identifierEquals("pai") || lexer.identifierEquals("jar"))) {
                 if (lexer.startPos - start > 0) {
+                    int semiIndex = sql.indexOf(';', lexer.startPos);
+                    if (semiIndex != -1) {
+                        lexer.pos = semiIndex - 1;
+                        lexer.nextToken();
+                        token = lexer.token;
+                        continue;
+                    }
                     String str = sql.substring(start, lexer.startPos).trim();
                     if (str.isEmpty()) {
                         lexer.startPos = sql.length();
@@ -599,7 +622,14 @@ public class SQLParserUtils {
                 set = true;
             }
 
-            lexer.nextToken();
+            if (lexer.identifierEquals("ADD") && (dbType == DbType.hive || dbType == DbType.odps)) {
+                lexer.nextToken();
+                if (lexer.identifierEquals("JAR")) {
+                    lexer.nextPath();
+                }
+            } else {
+                lexer.nextToken();
+            }
             token = lexer.token;
         }
 
@@ -724,7 +754,14 @@ public class SQLParserUtils {
                 start = lexer.startPos + lexer.stringVal().length();
             }
 
-            lexer.nextToken();
+            if (lexer.identifierEquals("ADD")) {
+                lexer.nextToken();
+                if (lexer.identifierEquals("JAR")) {
+                    lexer.nextPath();
+                }
+            } else {
+                lexer.nextToken();
+            }
             token = lexer.token;
         }
 
